@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TXT Modifier — THE CRIS IF</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04080f; --bg2:#080f1a; --bg3:#0d1829;
+  --cyan:#00f5ff; --cyan2:#00bcd4; --violet:#7c3aed; --violet2:#a855f7;
+  --green:#00ff88; --orange:#ff6b35; --red:#ff2d55; --gold:#ffd700;
+  --text:#e0f4ff; --text2:rgba(224,244,255,0.5);
+  --border:rgba(0,245,255,0.15); --border2:rgba(0,245,255,0.08);
+}
+body{
+  font-family:'Exo 2',sans-serif; background:var(--bg); color:var(--text);
+  min-height:100vh; padding:24px 16px 60px; position:relative; overflow-x:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(0,245,255,0.06) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 90%,rgba(124,58,237,0.08) 0%,transparent 50%);
+  pointer-events:none; animation:bgPulse 6s ease-in-out infinite alternate;
+}
+@keyframes bgPulse{from{opacity:.6}to{opacity:1}}
+body::after{
+  content:''; position:fixed; inset:0;
+  background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px; pointer-events:none;
+}
+
+.header{text-align:center;margin-bottom:40px;animation:fadeDown .8s ease both;}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+.logo-wrap{display:inline-flex;align-items:center;gap:12px;margin-bottom:12px;}
+.logo-bracket{font-family:'Orbitron',monospace;font-size:2rem;color:var(--cyan);opacity:.6;animation:blink 2s infinite;}
+@keyframes blink{0%,90%,100%{opacity:.6}95%{opacity:.2}}
+.title{
+  font-family:'Orbitron',monospace;font-size:clamp(1.4rem,5vw,2.2rem);font-weight:900;
+  background:linear-gradient(135deg,var(--cyan) 0%,var(--violet2) 60%,var(--cyan) 100%);
+  background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:shimmer 3s linear infinite;letter-spacing:.08em;
+}
+@keyframes shimmer{from{background-position:0%}to{background-position:200%}}
+.subtitle{font-size:.7rem;letter-spacing:.35em;color:var(--text2);font-weight:600;margin-bottom:10px;}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);
+  color:var(--green);font-size:.7rem;letter-spacing:.15em;padding:5px 16px;border-radius:4px;font-weight:600;
+}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse-dot 1.5s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+
+.card{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border);border-radius:16px;padding:28px 22px;
+  margin-bottom:20px;position:relative;overflow:hidden;
+  animation:fadeUp .7s ease both;max-width:640px;margin-left:auto;margin-right:auto;
+}
+.card+.card{margin-top:20px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.card-number{font-family:'Orbitron',monospace;font-size:.65rem;color:var(--cyan);letter-spacing:.3em;margin-bottom:14px;display:flex;align-items:center;gap:10px;opacity:.7;}
+.card-number::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+.card-title{font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;letter-spacing:.15em;color:var(--text);margin-bottom:18px;}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:18px;}
+.tab{
+  flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);
+  background:rgba(255,255,255,0.02);cursor:pointer;text-align:center;
+  font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.1em;
+  color:var(--text2);transition:all .25s;
+}
+.tab.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,0.08);box-shadow:0 0 16px rgba(0,245,255,0.15);}
+.tab-icon{font-size:1.2rem;display:block;margin-bottom:4px;}
+
+/* DROP ZONE */
+.drop-zone{
+  border:2px dashed rgba(0,245,255,0.25);border-radius:12px;
+  padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;
+  background:rgba(0,245,255,0.02);position:relative;
+}
+.drop-zone:hover,.drop-zone.drag-over{
+  border-color:var(--cyan);background:rgba(0,245,255,0.06);box-shadow:0 0 30px rgba(0,245,255,0.1);
+}
+.drop-icon{font-size:3rem;margin-bottom:12px;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.drop-text{font-size:1rem;font-weight:600;color:var(--cyan);margin-bottom:4px;letter-spacing:.05em;}
+.drop-sub{font-size:.8rem;color:var(--text2);}
+#file-input{display:none;}
+
+/* ARCHIVO CARGADO */
+.file-loaded{
+  display:none;margin-top:14px;
+  background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);
+  border-radius:10px;padding:14px 16px;
+  display:none;align-items:center;gap:12px;
+}
+.file-loaded.visible{display:flex;}
+.fl-icon{font-size:1.5rem;}
+.fl-info{flex:1;}
+.fl-name{font-weight:600;color:var(--green);font-size:.9rem;word-break:break-all;}
+.fl-size{font-size:.75rem;color:var(--text2);margin-top:2px;}
+.fl-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:1.1rem;transition:transform .2s;}
+.fl-remove:hover{transform:scale(1.3);}
+
+/* FILES LIST para TXT múltiples */
+.files-list{margin-top:14px;display:none;flex-direction:column;gap:6px;}
+.file-item{display:flex;align-items:center;gap:10px;background:rgba(0,245,255,0.05);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:.8rem;animation:fadeUp .3s ease;}
+.file-name{flex:1;color:var(--cyan2);font-weight:600;word-break:break-all;}
+.file-size{color:var(--text2);font-size:.7rem;white-space:nowrap;}
+.file-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:1rem;padding:2px;transition:transform .2s;}
+.file-remove:hover{transform:scale(1.3);}
+
+/* OPS */
+.ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0;}
+.op-btn{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all .25s;text-align:center;position:relative;overflow:hidden;}
+.op-btn::before{content:'';position:absolute;inset:0;background:currentColor;opacity:0;transition:opacity .25s;}
+.op-btn:hover::before{opacity:.05;}
+.op-btn.selected{border-color:currentColor;box-shadow:0 0 20px rgba(0,0,0,.3);}
+.op-btn.cyan{color:var(--cyan);}
+.op-btn.violet{color:var(--violet2);}
+.op-btn.orange{color:var(--orange);}
+.op-btn.green{color:var(--green);}
+.op-btn.selected.cyan{background:rgba(0,245,255,0.08);box-shadow:0 0 24px rgba(0,245,255,0.2);}
+.op-btn.selected.violet{background:rgba(168,85,247,0.08);box-shadow:0 0 24px rgba(168,85,247,0.2);}
+.op-btn.selected.orange{background:rgba(255,107,53,0.08);box-shadow:0 0 24px rgba(255,107,53,0.2);}
+.op-btn.selected.green{background:rgba(0,255,136,0.08);box-shadow:0 0 24px rgba(0,255,136,0.2);}
+.op-icon{font-size:1.6rem;display:block;margin-bottom:8px;}
+.op-code{font-family:'Orbitron',monospace;font-size:.75rem;font-weight:700;letter-spacing:.05em;margin-bottom:4px;}
+.op-desc{font-size:.7rem;color:var(--text2);}
+
+.custom-wrap{display:none;gap:10px;margin-top:14px;align-items:center;}
+.custom-wrap.visible{display:flex;}
+.custom-input{flex:1;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:.9rem;outline:none;transition:border-color .3s;}
+.custom-input:focus{border-color:var(--cyan);}
+.custom-input::placeholder{color:var(--text2);}
+.custom-arrow{font-size:1.2rem;color:var(--text2);}
+
+.btn-process{
+  width:100%;max-width:640px;margin:0 auto;display:block;
+  padding:18px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--violet),var(--cyan2));
+  color:white;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+  letter-spacing:.15em;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;
+  box-shadow:0 4px 30px rgba(124,58,237,0.3);
+}
+.btn-process::before{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:rgba(255,255,255,0.15);transform:skewX(-20deg);transition:left .5s;}
+.btn-process:hover::before{left:120%;}
+.btn-process:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(124,58,237,0.5);}
+.btn-process:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+#status{display:none;max-width:640px;margin:16px auto 0;padding:16px 20px;border-radius:10px;font-size:.9rem;font-weight:600;letter-spacing:.05em;animation:fadeUp .4s ease;}
+.status-loading{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);color:var(--gold);}
+.status-ok{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);color:var(--green);}
+.status-error{background:rgba(255,45,85,0.08);border:1px solid rgba(255,45,85,0.25);color:var(--red);}
+
+/* RESULTADO ZIP */
+.result-zip{
+  display:none;max-width:640px;margin:20px auto 0;
+  background:linear-gradient(135deg,rgba(0,255,136,0.06),rgba(0,245,255,0.06));
+  border:1px solid rgba(0,255,136,0.2);border-radius:16px;padding:28px 22px;
+  text-align:center;animation:fadeUp .5s ease;
+}
+.result-zip-icon{font-size:3.5rem;display:block;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+.result-zip-title{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--green);letter-spacing:.1em;margin-bottom:4px;}
+.result-zip-sub{font-size:.8rem;color:var(--text2);margin-bottom:20px;}
+.result-stats{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-num{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;color:var(--cyan);}
+.stat-label{font-size:.7rem;color:var(--text2);letter-spacing:.1em;}
+.btn-dl-zip{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--green),var(--cyan2));
+  color:#04080f;border:none;padding:16px 40px;border-radius:10px;
+  font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;
+  letter-spacing:.1em;cursor:pointer;transition:all .3s;
+  box-shadow:0 4px 24px rgba(0,255,136,0.3);
+}
+.btn-dl-zip:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,255,136,0.5);}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,215,0,0.3);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.footer{text-align:center;margin-top:40px;font-size:.7rem;letter-spacing:.15em;color:rgba(224,244,255,0.15);font-weight:600;}
+.footer span{color:var(--cyan);}
+
+.card-step{max-width:640px;margin:0 auto 20px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-wrap">
+    <span class="logo-bracket">[</span>
+    <div class="title">TXT_MODIFIER</div>
+    <span class="logo-bracket">]</span>
+  </div>
+  <div class="subtitle">THE CRIS IF EDITION</div>
+  <div class="badge">MODIFICADOR MASIVO CON ZIP</div>
+</div>
+
+<!-- STEP 1 -->
+<div class="card card-step">
+  <div class="card-number">01 // CARGAR ARCHIVOS</div>
+  <div class="card-title">SELECCIONA TU ZIP O ARCHIVOS TXT</div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('zip')">
+      <span class="tab-icon">🗜️</span>ZIP
+    </div>
+    <div class="tab" onclick="switchTab('txt')">
+      <span class="tab-icon">📄</span>TXT
+    </div>
+  </div>
+
+  <!-- TAB ZIP -->
+  <div id="tab-zip">
+    <div class="drop-zone" id="drop-zip" onclick="document.getElementById('zip-input').click()">
+      <span class="drop-icon">🗜️</span>
+      <div class="drop-text">Toca aquí para cargar tu ZIP</div>
+      <div class="drop-sub">Sube tu carpeta comprimida con todos los .txt</div>
+    </div>
+    <input type="file" id="zip-input" accept=".zip">
+    <div class="file-loaded" id="zip-loaded">
+      <span class="fl-icon">🗜️</span>
+      <div class="fl-info">
+        <div class="fl-name" id="zip-name"></div>
+        <div class="fl-size" id="zip-size"></div>
+      </div>
+      <button class="fl-remove" onclick="limpiarZip()">✕</button>
+    </div>
+  </div>
+
+  <!-- TAB TXT -->
+  <div id="tab-txt" style="display:none">
+    <div class="drop-zone" id="drop-txt" onclick="document.getElementById('txt-input').click()">
+      <span class="drop-icon">📂</span>
+      <div class="drop-text">Toca aquí para cargar archivos .txt</div>
+      <div class="drop-sub">Puedes seleccionar múltiples archivos a la vez</div>
+    </div>
+    <input type="file" id="txt-input" multiple accept=".txt">
+    <div class="files-list" id="files-list"></div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="card card-step">
+  <div class="card-number">02 // ELIGE LA OPERACIÓN</div>
+  <div class="card-title">TIPO DE MODIFICACIÓN</div>
+  <div class="ops-grid">
+    <div class="op-btn cyan selected" onclick="selectOp(this,'true-false')">
+      <span class="op-icon">🔵</span>
+      <div class="op-code">true → false</div>
+      <div class="op-desc">Cambiar TRUE a FALSE</div>
+    </div>
+    <div class="op-btn violet" onclick="selectOp(this,'false-true')">
+      <span class="op-icon">🟣</span>
+      <div class="op-code">false → true</div>
+      <div class="op-desc">Cambiar FALSE a TRUE</div>
+    </div>
+    <div class="op-btn orange" onclick="selectOp(this,'invert')">
+      <span class="op-icon">🔄</span>
+      <div class="op-code">INVERTIR TODO</div>
+      <div class="op-desc">Cambia ambos a la vez</div>
+    </div>
+    <div class="op-btn green" onclick="selectOp(this,'custom')">
+      <span class="op-icon">✏️</span>
+      <div class="op-code">PERSONALIZADO</div>
+      <div class="op-desc">Buscar y reemplazar</div>
+    </div>
+  </div>
+  <div class="custom-wrap" id="custom-wrap">
+    <input class="custom-input" id="custom-from" placeholder="Buscar..." type="text">
+    <span class="custom-arrow">→</span>
+    <input class="custom-input" id="custom-to" placeholder="Reemplazar..." type="text">
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="card card-step">
+  <div class="card-number">03 // EJECUTAR</div>
+  <div class="card-title">PROCESAR Y GENERAR ZIP</div>
+  <button class="btn-process" id="btn-process" onclick="procesar()">
+    ⚡ PROCESAR Y DESCARGAR ZIP
+  </button>
+</div>
+
+<div id="status"></div>
+
+<!-- RESULTADO -->
+<div class="result-zip" id="result-zip">
+  <span class="result-zip-icon">✅</span>
+  <div class="result-zip-title">¡ZIP LISTO!</div>
+  <div class="result-zip-sub" id="result-sub"></div>
+  <div class="result-stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-files">0</div>
+      <div class="stat-label">ARCHIVOS</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-cambios">0</div>
+      <div class="stat-label">CAMBIOS</div>
+    </div>
+  </div>
+  <button class="btn-dl-zip" id="btn-dl-zip">
+    ⬇ DESCARGAR ZIP MODIFICADO
+  </button>
+</div>
+
+<div class="footer">Hecho con ⚡ por <span>THE CRIS IF</span></div>
+
+<script>
+let modoTab = 'zip';
+let zipFile = null;
+let txtArchivos = [];
+let opActual = 'true-false';
+
+// TABS
+function switchTab(tab) {
+  modoTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='zip')||(i===1&&tab==='txt')));
+  document.getElementById('tab-zip').style.display = tab==='zip' ? 'block' : 'none';
+  document.getElementById('tab-txt').style.display = tab==='txt' ? 'block' : 'none';
+}
+
+// ZIP INPUT
+document.getElementById('zip-input').addEventListener('change', function() {
+  if (this.files[0]) cargarZip(this.files[0]);
+});
+const dropZipEl = document.getElementById('drop-zip');
+dropZipEl.addEventListener('dragover', e => { e.preventDefault(); dropZipEl.classList.add('drag-over'); });
+dropZipEl.addEventListener('dragleave', () => dropZipEl.classList.remove('drag-over'));
+dropZipEl.addEventListener('drop', e => {
+  e.preventDefault(); dropZipEl.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) cargarZip(e.dataTransfer.files[0]);
+});
+
+function cargarZip(file) {
+  zipFile = file;
+  document.getElementById('zip-name').textContent = file.name;
+  document.getElementById('zip-size').textContent = (file.size/1024/1024).toFixed(2) + ' MB — ' + 'ZIP cargado ✓';
+  document.getElementById('zip-loaded').classList.add('visible');
+  document.getElementById('drop-zip').style.display = 'none';
+}
+function limpiarZip() {
+  zipFile = null;
+  document.getElementById('zip-loaded').classList.remove('visible');
+  document.getElementById('drop-zip').style.display = 'block';
+  document.getElementById('zip-input').value = '';
+}
+
+// TXT INPUT
+document.getElementById('txt-input').addEventListener('change', function() {
+  agregarTxt([...this.files]);
+  this.value = '';
+});
+const dropTxtEl = document.getElementById('drop-txt');
+dropTxtEl.addEventListener('dragover', e => { e.preventDefault(); dropTxtEl.classList.add('drag-over'); });
+dropTxtEl.addEventListener('dragleave', () => dropTxtEl.classList.remove('drag-over'));
+dropTxtEl.addEventListener('drop', e => {
+  e.preventDefault(); dropTxtEl.classList.remove('drag-over');
+  agregarTxt([...e.dataTransfer.files].filter(f => f.name.endsWith('.txt')));
+});
+
+function agregarTxt(nuevos) {
+  nuevos.forEach(f => { if (!txtArchivos.find(a => a.name===f.name)) txtArchivos.push(f); });
+  renderTxt();
+}
+function renderTxt() {
+  const list = document.getElementById('files-list');
+  if (!txtArchivos.length) { list.style.display='none'; return; }
+  list.style.display='flex';
+  list.innerHTML = txtArchivos.map((f,i) => `
+    <div class="file-item">
+      <span>📄</span>
+      <span class="file-name">${f.name}</span>
+      <span class="file-size">${(f.size/1024).toFixed(1)} KB</span>
+      <button class="file-remove" onclick="quitarTxt(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function quitarTxt(i) { txtArchivos.splice(i,1); renderTxt(); }
+
+// OPERACIONES
+function selectOp(btn, op) {
+  document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  opActual = op;
+  document.getElementById('custom-wrap').classList.toggle('visible', op==='custom');
+}
+
+function setStatus(tipo, msg) {
+  const el = document.getElementById('status');
+  el.style.display='block'; el.className='status-'+tipo; el.innerHTML=msg;
+}
+
+function obtenerReemplazador() {
+  if (opActual==='true-false')  return { buscar:/true/gi, reemplazar: m => m===m.toUpperCase()?'FALSE':m[0]===m[0].toUpperCase()?'False':'false' };
+  if (opActual==='false-true')  return { buscar:/false/gi, reemplazar: m => m===m.toUpperCase()?'TRUE':m[0]===m[0].toUpperCase()?'True':'true' };
+  if (opActual==='invert')      return { buscar:/true|false/gi, reemplazar: m => { const l=m.toLowerCase(); return l==='true'?(m===m.toUpperCase()?'FALSE':m[0]===m[0].toUpperCase()?'False':'false'):(m===m.toUpperCase()?'TRUE':m[0]===m[0].toUpperCase()?'True':'true'); }};
+  const from = document.getElementById('custom-from').value;
+  const to   = document.getElementById('custom-to').value;
+  if (!from) return null;
+  return { buscar: new RegExp(from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), reemplazar: to };
+}
+
+async function procesar() {
+  const rep = obtenerReemplazador();
+  if (!rep) { setStatus('error','❌ Escribe el texto a buscar'); return; }
+
+  if (modoTab==='zip' && !zipFile) { setStatus('error','❌ Carga un archivo ZIP primero'); return; }
+  if (modoTab==='txt' && !txtArchivos.length) { setStatus('error','❌ Carga al menos un archivo .txt'); return; }
+
+  const btn = document.getElementById('btn-process');
+  btn.disabled = true;
+  document.getElementById('result-zip').style.display = 'none';
+  setStatus('loading','<span class="spinner"></span> Procesando archivos...');
+
+  try {
+    const zipSalida = new JSZip();
+    let totalArchivos = 0;
+    let totalCambios = 0;
+
+    if (modoTab==='zip') {
+      const zipEntrada = await JSZip.loadAsync(zipFile);
+      const archTxt = Object.entries(zipEntrada.files).filter(([n,f]) => !f.dir && n.endsWith('.txt'));
+      for (const [nombre, archivo] of archTxt) {
+        const texto = await archivo.async('string');
+        let count = 0;
+        const nuevo = texto.replace(rep.buscar, m => { count++; return typeof rep.reemplazar==='function' ? rep.reemplazar(m) : rep.reemplazar; });
+        zipSalida.file(nombre, nuevo);
+        totalArchivos++; totalCambios += count;
+      }
+    } else {
+      for (const archivo of txtArchivos) {
+        const texto = await archivo.text();
+        let count = 0;
+        const nuevo = texto.replace(rep.buscar, m => { count++; return typeof rep.reemplazar==='function' ? rep.reemplazar(m) : rep.reemplazar; });
+        zipSalida.file(archivo.name, nuevo);
+        totalArchivos++; totalCambios += count;
+      }
+    }
+
+    setStatus('loading','<span class="spinner"></span> Generando ZIP...');
+    const blob = await zipSalida.generateAsync({type:'blob', compression:'DEFLATE'});
+
+    // Mostrar resultado
+    document.getElementById('stat-files').textContent = totalArchivos;
+    document.getElementById('stat-cambios').textContent = totalCambios;
+    document.getElementById('result-sub').textContent = `${totalArchivos} archivo(s) modificados con ${totalCambios} reemplazos en total`;
+    document.getElementById('result-zip').style.display = 'block';
+
+    const url = URL.createObjectURL(blob);
+    const btnDl = document.getElementById('btn-dl-zip');
+    btnDl.onclick = () => {
+      const a = document.createElement('a');
+      a.href = url; a.download = 'modificados_thecrisif.zip';
+      a.click();
+    };
+
+    setStatus('ok', `✅ ¡Listo! ${totalArchivos} archivo(s) procesados — ${totalCambios} cambios`);
+
+  } catch(e) {
+    setStatus('error','❌ Error al procesar: ' + e.message);
+  }
+
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
