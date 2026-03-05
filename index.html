@@ -194,6 +194,66 @@ body::after{
 </head>
 <body>
 
+<!-- PANTALLA DE CONTRASEÑA -->
+<div id="lockScreen" style="
+  position:fixed;inset:0;z-index:99999;
+  background:#04080f;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  font-family:'Exo 2',sans-serif;
+">
+  <div style="text-align:center;">
+    <div style="font-size:52px;margin-bottom:12px;">🔑</div>
+    <div style="font-family:'Orbitron',monospace;font-size:clamp(18px,5vw,28px);font-weight:900;background:linear-gradient(135deg,#00f5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:3px;">
+      THE CRIS IF
+    </div>
+    <div style="color:rgba(224,244,255,0.4);font-size:12px;letter-spacing:4px;margin-top:6px;">INGRESA LA CONTRASEÑA</div>
+  </div>
+
+  <div style="position:relative;width:280px;">
+    <input id="passInput" type="password" placeholder="cris2025"
+      style="width:100%;padding:16px 20px;background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.2);border-radius:12px;color:#e0f4ff;font-family:'Exo 2',sans-serif;font-size:18px;letter-spacing:4px;outline:none;text-align:center;"
+      onkeydown="if(event.key==='Enter')checkPass()"
+    />
+  </div>
+
+  <button onclick="checkPass()" style="
+    padding:14px 40px;background:linear-gradient(135deg,#00f5ff,#7c3aed);
+    border:none;border-radius:12px;color:#fff;font-family:'Orbitron',monospace;
+    font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;
+    box-shadow:0 0 20px rgba(0,245,255,0.3);transition:all 0.2s;
+  " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    ENTRAR
+  </button>
+
+  <div id="passError" style="color:#ff2d55;font-size:12px;letter-spacing:2px;opacity:0;transition:opacity 0.3s;">
+    ❌ CONTRASEÑA INCORRECTA
+  </div>
+</div>
+
+<script>
+const CONTRASENA = "PON_TU_CONTRASEÑA_AQUI";
+function checkPass() {
+  const input = document.getElementById('passInput').value;
+  if(input === CONTRASENA) {
+    document.getElementById('lockScreen').style.opacity = '0';
+    document.getElementById('lockScreen').style.transition = 'opacity 0.5s';
+    setTimeout(() => document.getElementById('lockScreen').style.display = 'none', 500);
+  } else {
+    const err = document.getElementById('passError');
+    const inp = document.getElementById('passInput');
+    err.style.opacity = '1';
+    inp.style.borderColor = '#ff2d55';
+    inp.style.boxShadow = '0 0 15px rgba(255,45,85,0.3)';
+    inp.value = '';
+    setTimeout(() => {
+      err.style.opacity = '0';
+      inp.style.borderColor = 'rgba(0,245,255,0.2)';
+      inp.style.boxShadow = 'none';
+    }, 2000);
+  }
+}
+</script>
+
 <div class="header">
   <div class="logo-wrap">
     <span class="logo-bracket">[</span>
